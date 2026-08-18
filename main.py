@@ -1,3 +1,4 @@
+തീർച്ചയായും! Render-ൽ നേരിട്ട് ഉപയോഗിക്കാൻ പാകത്തിൽ, ആവശ്യമായ മാറ്റങ്ങളെല്ലാം വരുത്തിയ മെയിൻ Python കോഡ് താഴെ നൽകുന്നു. ഇത് കോപ്പി ചെയ്ത് സേവ് ചെയ്താൽ മതി.
 import os
 import sqlite3
 from datetime import datetime
@@ -13,10 +14,10 @@ from PIL import Image  # THIS IS THE LIBRARY WE JUST INSTALLED VIA PIP
 API_TOKEN = '8952175837:AAF-hpl1IZU9m2BH6-LVITzetlz6mVzlbq4'  # Your Token
 bot = telebot.TeleBot(API_TOKEN)
 
-# Railway persistent database path
-# Mount your Railway Volume to /data so this file survives restarts/redeploys.
-DB_PATH = os.getenv("DB_PATH", "/data/marko_shop.db")
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+# Database path for Render (Local persistent or environment variable)
+DB_PATH = os.getenv("DB_PATH", "marko_shop.db")
+if os.path.dirname(DB_PATH):
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 def get_db():
     return sqlite3.connect(DB_PATH)
@@ -208,7 +209,7 @@ def process_auto_delivery(user_id, username, product_name, qty, payment_method, 
         conn.close()
         return None
 
-  allocated_accounts = []
+    allocated_accounts = []
     ids_to_delete = []
     for item_id, email in items:
         allocated_accounts.append(email)
@@ -404,7 +405,7 @@ def handle_callbacks(call):
             bot.send_message(chat_id, "Select a product category below:", reply_markup=shop_menu_keyboard())
         return
 
-      if data == "close_menu":
+    if data == "close_menu":
         bot.delete_message(chat_id, call.message.message_id)
         return
 
@@ -564,7 +565,6 @@ def handle_callbacks(call):
             else:
                 markup.add(types.InlineKeyboardButton("🚘 MARKO GARAGE", callback_data="prod_garage"))
 
-            # SMART SYSTEM VIEW LOGIC: If a single collage ID exists (or fallback list), it handles it cleanly
             if photo_id and "," in photo_id:
                 photo_ids = photo_id.split(",")
                 media_group = []
@@ -628,7 +628,7 @@ def handle_callbacks(call):
             except Exception:
                 bot.send_message(chat_id, caption, reply_markup=markup)
 
-          elif data.startswith("garcheckout_"):
+    elif data.startswith("garcheckout_"):
         car_id = int(data.split("_")[1])
         conn = get_db()
         cursor = conn.cursor()
@@ -954,8 +954,8 @@ def handle_callbacks(call):
         parts = data.split("_")
         prod = parts[2]
         val = parts[3]
-
-amt_text = ""
+        
+        amt_text = ""
         if prod == "regular":
             amt_text = f"${int(val) * 1} USD"
         elif prod == "vip":
@@ -1270,9 +1270,7 @@ def handle_stars_success_payment(message):
     d_str = now.strftime('%m/%d/%Y')
     t_str = now.strftime('%I:%M %p')
     
-    # ----------------------------------------------------------------
     # CASE A: MARKO GARAGE (CAR STARS WORKFLOW)
-    # ----------------------------------------------------------------
     if payload.startswith("carstars:"):
         parts = payload.split(":")
         car_id = int(parts[1])
@@ -1287,7 +1285,7 @@ def handle_stars_success_payment(message):
         conn.commit()
         conn.close()
 
-brand = car[0] if car else "Unknown Car"
+        brand = car[0] if car else "Unknown Car"
         owner = car[1] if car else "@JustMarko"
         photo_file_id = car[2] if car else ""
 
@@ -1337,9 +1335,7 @@ brand = car[0] if car else "Unknown Car"
         bot.send_message(buyer_id, deliv_msg)
         return
 
-    # ----------------------------------------------------------------
     # CASE B: SHOP REGULAR / VIP / COINFARM ACCOUNTS
-    # ----------------------------------------------------------------
     if not payload.startswith("stars_buy:"):
         return
 
@@ -1413,7 +1409,6 @@ brand = car[0] if car else "Unknown Car"
         )
         bot.send_message(buyer_id, cf_msg)
         
-        # FIXED: Added admin_order_keyboard so admins can Confirm/Decline Stars payments for custom plans too
         try:
             bot.send_message(LOGS_GROUP_ID, f"🔔 **Stars Custom Order:** User @{buyer_uname} requested {p_name} ({val.upper()}). Order #{order_id}. Confirm setup?", reply_markup=admin_order_keyboard(order_id))
         except Exception:
@@ -1557,7 +1552,7 @@ def trigger_album_verification_pipeline(message, media_group_id=None, single_pho
         except Exception:
             pass
 
-bot.send_message(target_group, log_txt, reply_markup=admin_order_keyboard(order_id))
+    bot.send_message(target_group, log_txt, reply_markup=admin_order_keyboard(order_id))
 
     user_states.pop(f"pay_flow_{user_id}", None)
     bot.send_message(user_id, f"✅ **Receipt received successfully!** Your Order #{order_id} has been forwarded to the administrators for verification. Please hang tight for a moment, bro!")
@@ -1697,7 +1692,7 @@ def restock_routing_entry(message):
         bot.reply_to(message, "❌ Invalid Quantity! Please provide a valid number. Example: `/restock_regular 5`", parse_mode="Markdown")
         return
 
-command_clean = parts[0].lower().split('@')[0]
+    command_clean = parts[0].lower().split('@')[0]
     p_type = "REGULAR" if "regular" in command_clean else "VIP"
     
     msg_prompt = bot.reply_to(
@@ -1919,7 +1914,7 @@ def finalize_add_car_database_collage(message, media_group_id=None, single_photo
 
 
 # =======================================================================
-# 11. CATCH-ALL PHOTO MIDDLEWARE (DITO SINALO ANG MGA ALBUM CHUNKS)
+# 11. CATCH-ALL PHOTO MIDDLEWARE
 # =======================================================================
 @bot.message_handler(content_types=['photo'])
 def catch_all_photo_handler(message):
