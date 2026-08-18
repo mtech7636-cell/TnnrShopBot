@@ -10,7 +10,7 @@ from PIL import Image  # THIS IS THE LIBRARY WE JUST INSTALLED VIA PIP
 # ---------------------------------------------------------------------------
 # 1. CONFIGURATION & CONFIG CONSTANTS
 # ---------------------------------------------------------------------------
-API_TOKEN = '8146301508:AAFuRTdlN99BI8Vg3ctPHIet51lCj2NBH-M'  # Your Token
+API_TOKEN = '8952175837:AAF-hpl1IZU9m2BH6-LVITzetlz6mVzlbq4'  # Your Token
 bot = telebot.TeleBot(API_TOKEN)
 
 # Railway persistent database path
@@ -21,8 +21,8 @@ os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 def get_db():
     return sqlite3.connect(DB_PATH)
 
-OWNER_ID = 6876395516
-EXTRA_ADMIN = 8592050950
+OWNER_ID = 7212602902
+EXTRA_ADMIN = 7212602902
 ADMINS = [OWNER_ID, EXTRA_ADMIN]
 
 STARS_CHANNEL_ID = -1003846885691
